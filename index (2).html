@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de Trámite Documentario</title>
+
+<style>
+* { box-sizing: border-box; font-family: Arial, sans-serif; }
+body { margin: 0; background: #f5f7fb; color: #222; }
+
+.topbar { background: #1b4d89; color: #fff; padding: 16px 24px; }
+.topbar h1 { margin: 0; font-size: 22px; }
+.topbar p { margin: 4px 0 0; opacity: .9; }
+
+.tabs { display: flex; gap: 8px; padding: 12px 24px; background: #fff; border-bottom: 1px solid #ddd; }
+.tab-btn { border: 1px solid #bbb; background: #fff; padding: 8px 14px; border-radius: 8px; cursor: pointer; }
+.tab-btn.active { background: #1b4d89; color: #fff; border-color: #1b4d89; }
+
+.container { padding: 20px 24px; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.card { background: #fff; border-radius: 10px; padding: 12px; border: 1px solid #ddd; }
+.card h3 { margin: 0 0 6px; font-size: 14px; color: #666; }
+.card p { margin: 0; font-size: 24px; font-weight: bold; }
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  background: #fff;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+input, select, textarea, button {
+  padding: 10px;
+  border: 1px solid #bbb;
+  border-radius: 8px;
+}
+
+button {
+  background: #1b4d89;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover { opacity: .95; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid #ddd;
+}
+
+th, td {
+  border: 1px solid #e3e3e3;
+  padding: 8px;
+  text-align: left;
+}
+
+th { background: #eef3fb; }
+
+.badge {
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: #e8eefb;
+  color: #1b4d89;
+}
+</style>
+</head>
+
+<body>
+
+<header class="topbar">
+  <h1>Sistema de Trámite Documentario</h1>
+  <p>Ministerio de Agricultura</p>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-tab="data">Dashboard</button>
+  <button class="tab-btn" data-tab="solicitantes">Solicitantes</button>
+  <button class="tab-btn" data-tab="documentos">Documentos</button>
+  <button class="tab-btn" data-tab="tramites">Trámites</button>
+</nav>
+
+<main class="container">
+
+<section id="dashboard" class="tab-content active">
+  <h2>Resumen</h2>
+  <div class="cards">
+    <div class="card"><h3>Solicitantes</h3><p id="countSolicitantes">0</p></div>
+    <div class="card"><h3>Documentos</h3><p id="countDocumentos">0</p></div>
+    <div class="card"><h3>Trámites</h3><p id="countTramites">0</p></div>
+  </div>
+  <h3>Últimos trámites</h3>
+  <div id="ultimosTramites"></div>
+</section>
+
+<section id="solicitantes" class="tab-content">
+  <h2>Solicitantes</h2>
+  <form id="formSolicitante" class="form-grid">
+    <input type="text" id="dni" placeholder="DNI" required>
+    <input type="text" id="nombre" placeholder="Nombre completo" required>
+    <input type="text" id="telefono" placeholder="Teléfono" required>
+    <input type="email" id="email" placeholder="Email" required>
+    <button type="submit">Guardar</button>
+  </form>
+  <div id="tablaSolicitantes"></div>
+</section>
+
+<section id="documentos" class="tab-content">
+  <h2>Documentos</h2>
+  <form id="formDocumento" class="form-grid">
+    <input type="text" id="tipoDoc" placeholder="Tipo documento" required>
+    <input type="number" id="folios" placeholder="Folios" required>
+    <select id="estadoDoc">
+      <option>ACTIVO</option>
+      <option>OBSERVADO</option>
+      <option>ANULADO</option>
+    </select>
+    <button type="submit">Guardar</button>
+  </form>
+  <div id="tablaDocumentos"></div>
+</section>
+
+<section id="tramites" class="tab-content">
+  <h2>Trámites</h2>
+  <form id="formTramite" class="form-grid">
+    <select id="idCli"></select>
+    <select id="idDoc"></select>
+    <select id="idUsu"></select>
+    <textarea id="observacion" placeholder="Observación"></textarea>
+    <select id="estadoTramite">
+      <option>REGISTRADO</option>
+      <option>DERIVADO</option>
+      <option>EN_PROCESO</option>
+      <option>ATENDIDO</option>
+    </select>
+    <button type="submit">Guardar</button>
+  </form>
+  <div id="tablaTramites"></div>
+</section>
+
+</main>
+
+<script>
+const STORAGE_KEY = "tramite_db";
+
+function initDB() {
+  if (!localStorage.getItem(STORAGE_KEY)) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      usuarios:[
+        {id_usu:1,usuario:"Admin"},
+        {id_usu:2,usuario:"Operador"}
+      ],
+      solicitantes:[],
+      documentos:[],
+      tramites:[]
+    }));
+  }
+}
+
+function getDB(){ return JSON.parse(localStorage.getItem(STORAGE_KEY)); }
+function saveDB(db){ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }
+function nextId(arr, campo){ return arr.length ? Math.max(...arr.map(x=>x[campo]))+1 : 1; }
+
+// Tabs
+document.querySelectorAll(".tab-btn").forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach(t=>t.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById(btn.dataset.tab).classList.add("active");
+  };
+});
+
+// Soliciante
+formSolicitante.onsubmit=e=>{
+  e.preventDefault();
+  let db=getDB();
+  db.solicitantes.push({
+    id_cli:nextId(db.solicitantes,"id_cli"),
+    dni:dni.value,
+    nombre:nombre.value,
+    telefono:telefono.value,
+    email:email.value
+  });
+  saveDB(db); e.target.reset(); render();
+};
+
+// Documento
+formDocumento.onsubmit=e=>{
+  e.preventDefault();
+  let db=getDB();
+  db.documentos.push({
+    id_doc:nextId(db.documentos,"id_doc"),
+    tipo:tipoDoc.value,
+    folios:folios.value,
+    estado:estadoDoc.value
+  });
+  saveDB(db); e.target.reset(); render();
+};
+
+// Tramite
+formTramite.onsubmit=e=>{
+  e.preventDefault();
+  let db=getDB();
+  db.tramites.push({
+    id_tram:nextId(db.tramites,"id_tram"),
+    id_cli:+idCli.value,
+    id_doc:+idDoc.value,
+    idusu:+idUsu.value,
+    observacion:observacion.value,
+    estado:estadoTramite.value
+  });
+  saveDB(db); e.target.reset(); render();
+};
+
+function render(){
+  let db=getDB();
+
+  countSolicitantes.textContent=db.solicitantes.length;
+  countDocumentos.textContent=db.documentos.length;
+  countTramites.textContent=db.tramites.length;
+
+  idCli.innerHTML=db.solicitantes.map(x=>`<option value="${x.id_cli}">${x.nombre}</option>`).join("");
+  idDoc.innerHTML=db.documentos.map(x=>`<option value="${x.id_doc}">${x.tipo}</option>`).join("");
+  idUsu.innerHTML=db.usuarios.map(x=>`<option value="${x.id_usu}">${x.usuario}</option>`).join("");
+}
+
+initDB();
+render();
+</script>
+
+</body>
+</html>

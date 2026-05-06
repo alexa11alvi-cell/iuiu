@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Trámite Documentario</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>Sistema de Trámite Documentario</h1>
+    <p>Ministerio de Agricultura</p>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+    <button class="tab-btn" data-tab="solicitantes">Solicitantes</button>
+    <button class="tab-btn" data-tab="documentos">Documentos</button>
+    <button class="tab-btn" data-tab="tramites">Trámites</button>
+  </nav>
+
+  <main class="container">
+    <!-- DASHBOARD -->
+    <section id="dashboard" class="tab-content active">
+      <h2>Resumen</h2>
+      <div class="cards">
+        <article class="card">
+          <h3>Solicitantes</h3>
+          <p id="countSolicitantes">0</p>
+        </article>
+        <article class="card">
+          <h3>Documentos</h3>
+          <p id="countDocumentos">0</p>
+        </article>
+        <article class="card">
+          <h3>Trámites</h3>
+          <p id="countTramites">0</p>
+        </article>
+      </div>
+
+      <h3>Últimos trámites</h3>
+      <div id="ultimosTramites"></div>
+    </section>
+
+    <!-- SOLICITANTES -->
+    <section id="solicitantes" class="tab-content">
+      <h2>Solicitantes</h2>
+      <form id="formSolicitante" class="form-grid">
+        <input type="text" id="dni" placeholder="DNI" required />
+        <input type="text" id="nombre" placeholder="Nombre completo" required />
+        <input type="text" id="telefono" placeholder="Teléfono" required />
+        <input type="email" id="email" placeholder="Email" required />
+        <button type="submit">Guardar solicitante</button>
+      </form>
+
+      <div id="tablaSolicitantes"></div>
+    </section>
+
+    <!-- DOCUMENTOS -->
+    <section id="documentos" class="tab-content">
+      <h2>Documentos</h2>
+      <form id="formDocumento" class="form-grid">
+        <input type="text" id="tipoDoc" placeholder="Tipo de documento" required />
+        <input type="number" id="folios" placeholder="Folios" min="1" required />
+        <select id="estadoDoc">
+          <option value="ACTIVO">ACTIVO</option>
+          <option value="OBSERVADO">OBSERVADO</option>
+          <option value="ANULADO">ANULADO</option>
+        </select>
+        <button type="submit">Guardar documento</button>
+      </form>
+
+      <div id="tablaDocumentos"></div>
+    </section>
+
+    <!-- TRÁMITES -->
+    <section id="tramites" class="tab-content">
+      <h2>Trámites</h2>
+      <form id="formTramite" class="form-grid">
+        <select id="idCli" required></select>
+        <select id="idDoc" required></select>
+        <select id="idUsu" required></select>
+        <textarea id="observacion" placeholder="Observación" rows="2"></textarea>
+        <select id="estadoTramite">
+          <option value="REGISTRADO">REGISTRADO</option>
+          <option value="DERIVADO">DERIVADO</option>
+          <option value="EN_PROCESO">EN_PROCESO</option>
+          <option value="ATENDIDO">ATENDIDO</option>
+          <option value="OBSERVADO">OBSERVADO</option>
+        </select>
+        <button type="submit">Guardar trámite</button>
+      </form>
+
+      <h3>Listado de trámites</h3>
+      <div id="tablaTramites"></div>
+    </section>
+  </main>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
